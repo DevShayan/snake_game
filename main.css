@@ -48,6 +48,7 @@ h1 {
     width: 19px;
     height: 19px;
     margin: 3px;
+    border-radius: 50px;
     background-color: yellow;
 }
 

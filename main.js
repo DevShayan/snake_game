@@ -7,7 +7,7 @@ let scoreDisplay = document.getElementById("score");
 
 let gameLoop = null;
 let headPosX = 0, headPosY = 0;
-let speed = 300;
+let speed = 200;
 let gameStarted;
 let containerWidth, containerHeight;
 let foodPosX, foodPosY;
@@ -37,7 +37,6 @@ function init() {
 
     headerContent.style.width = containerWidth+"px";
 
-    snakes[0] = snake;
     score = 0;
     gameStarted = false;
     acceptInput = true;
@@ -48,18 +47,29 @@ function init() {
 
     headPosX = 0;
     headPosY = 0;
+    snakes.push(snake);
     snake.style.left = headPosX+"px";
     snake.style.top = headPosY+"px";
     snake.style.backgroundColor = "#4977ee";
 }
 
 function resetGame() {
+    while (snakes.length > 1) {
+        snakes[snakes.length-1].parentNode.removeChild(snakes[snakes.length-1]);
+        snakes.pop();
+    }
+
+    scoreDisplay.innerText = "Score: 0";
     score = 0;
     headPosX = 0;
     headPosY = 0;
-    snake.style.left = headPosX+"px";
-    snake.style.top = headPosY+"px";
-    snake.style.backgroundColor = "#4977ee";
+
+    if (snakes.length == 0) {
+        snakes.push(snake);
+    }
+    snakes[0].style.left = headPosX+"px";
+    snakes[0].style.top = headPosY+"px";
+    snakes[0].style.backgroundColor = "#4977ee";
 }
 
 function startGame() {
@@ -69,54 +79,41 @@ function startGame() {
 
     gameLoop = setInterval(function() {
 
+        let poped = snakes.pop();
+
         if (movingDirection == Directions.top) {
             headPosY -= 25;
-            if (snakes.length > 1) {
-                let poped = snakes.pop();
+            if (headPosY < -25) {
                 poped.style.top = headPosY + "px";
                 poped.style.left = headPosX + "px";
-                snakes.unshift(poped);
             }
-            else if (headPosY != -25) {
-                snake.style.top = headPosY+"px";
-            }
+
         }
         else if (movingDirection == Directions.right) {
             headPosX += 25;
-            if (snakes.length > 1) {
-                let poped = snakes.pop();
+            if (headPosX > containerWidth) {
                 poped.style.top = headPosY + "px";
                 poped.style.left = headPosX + "px";
-                snakes.unshift(poped);
             }
-            else if (headPosX != containerWidth) {
-                snake.style.left = headPosX+"px";
-            }
+
         }
         else if (movingDirection == Directions.down) {
             headPosY += 25;
-            if (snakes.length > 1) {
-                let poped = snakes.pop();
+            if (headPosY > containerHeight) {
                 poped.style.top = headPosY + "px";
                 poped.style.left = headPosX + "px";
-                snakes.unshift(poped);
             }
-            else if (headPosY != containerWidth) {
-                snake.style.top = headPosY+"px";
-            }
+
         }
         else if (movingDirection == Directions.left) {
             headPosX -= 25;
-            if (snakes.length > 1) {
-                let poped = snakes.pop();
+            if (headPosX < -25) {
                 poped.style.top = headPosY + "px";
                 poped.style.left = headPosX + "px";
-                snakes.unshift(poped);
-            }
-            else if (headPosX != containerWidth) {
-                snake.style.left = headPosX+"px";
             }
         }
+        console.log(snakes.length);
+        snakes.unshift(poped);
 
         if (headPosX >= containerWidth ||
             headPosY >= containerHeight ||
@@ -139,10 +136,13 @@ function startGame() {
 }
 
 function gameOver() {
+    for (let x=0; x<snakes.length; x++) {
+        snakes[x].style.backgroundColor = "red";
+    }
+
     gameStarted = false;
     clearInterval(gameLoop);
     movingDirection = "";
-    snake.style.backgroundColor = "red";
     scoreDisplay.innerText = "Game Over! Score: "+score;
 }
 
@@ -156,8 +156,8 @@ function generateRandFood() {
 function growSnake() {
     let snakeGrow = document.createElement("div");
     snakeGrow.className = "snake";
-    snakeGrow.style.top = snake.style.top;
-    snakeGrow.style.left = snake.style.left;
+    snakeGrow.style.top = snakes[0].style.top;
+    snakeGrow.style.left = snakes[0].style.left;
     gameContainer.appendChild(snakeGrow);
     snakes.push(snakeGrow);
 }
