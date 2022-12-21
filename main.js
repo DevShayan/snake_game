@@ -15,8 +15,10 @@ let headerHeight;
 let acceptInput;
 let snakes = [];
 
+let touchStartX, touchStartY, touchEndX, touchEndY;
+
 const Directions = {
-    top: "ArrowUp",
+    up: "ArrowUp",
     right: "ArrowRight",
     down: "ArrowDown",
     left: "ArrowLeft"
@@ -24,6 +26,8 @@ const Directions = {
 let movingDirection;
 
 init();
+
+/** Functions */
 
 function init() {
 
@@ -37,20 +41,14 @@ function init() {
 
     headerContent.style.width = containerWidth+"px";
 
-    score = 0;
     gameStarted = false;
     acceptInput = true;
     movingDirection = "";
     clearInterval(gameLoop);
 
     generateRandFood();
+    resetGame();
 
-    headPosX = 0;
-    headPosY = 0;
-    snakes.push(snake);
-    snake.style.left = headPosX+"px";
-    snake.style.top = headPosY+"px";
-    snake.style.backgroundColor = "#4977ee";
 }
 
 function resetGame() {
@@ -64,9 +62,8 @@ function resetGame() {
     headPosX = 0;
     headPosY = 0;
 
-    if (snakes.length == 0) {
-        snakes.push(snake);
-    }
+    if (snakes.length == 0) snakes.push(snake);
+
     snakes[0].style.left = headPosX+"px";
     snakes[0].style.top = headPosY+"px";
     snakes[0].style.backgroundColor = "#4977ee";
@@ -81,9 +78,9 @@ function startGame() {
 
         let poped = snakes.pop();
 
-        if (movingDirection == Directions.top) {
+        if (movingDirection == Directions.up) {
             headPosY -= 25;
-            if (headPosY < -25) {
+            if (headPosY > -25) {
                 poped.style.top = headPosY + "px";
                 poped.style.left = headPosX + "px";
             }
@@ -91,7 +88,7 @@ function startGame() {
         }
         else if (movingDirection == Directions.right) {
             headPosX += 25;
-            if (headPosX > containerWidth) {
+            if (headPosX < containerWidth) {
                 poped.style.top = headPosY + "px";
                 poped.style.left = headPosX + "px";
             }
@@ -99,7 +96,7 @@ function startGame() {
         }
         else if (movingDirection == Directions.down) {
             headPosY += 25;
-            if (headPosY > containerHeight) {
+            if (headPosY < containerHeight) {
                 poped.style.top = headPosY + "px";
                 poped.style.left = headPosX + "px";
             }
@@ -107,12 +104,11 @@ function startGame() {
         }
         else if (movingDirection == Directions.left) {
             headPosX -= 25;
-            if (headPosX < -25) {
+            if (headPosX > -25) {
                 poped.style.top = headPosY + "px";
                 poped.style.left = headPosX + "px";
             }
         }
-        console.log(snakes.length);
         snakes.unshift(poped);
 
         if (headPosX >= containerWidth ||
@@ -162,14 +158,47 @@ function growSnake() {
     snakes.push(snakeGrow);
 }
 
+function setTouchDirection() {
+    let touchMovementX = Math.abs(touchEndX - touchStartX);
+    let touchMovementY = Math.abs(touchEndY - touchStartY);
+    let prevMovingDir = movingDirection;
+
+    if (touchMovementX > touchMovementY) {
+        if (touchEndX > touchStartX) {
+            movingDirection = Directions.right;
+        } else {
+            movingDirection = Directions.left;
+        }
+    }
+    else if (touchMovementX < touchMovementY) {
+        if (touchEndY > touchStartY) {
+            movingDirection = Directions.down;
+        } else {
+            movingDirection = Directions.up;
+        }
+    }
+    if (!(!(prevMovingDir == Directions.right && movingDirection == Directions.left ||
+        prevMovingDir == Directions.down && movingDirection == Directions.up ||
+        prevMovingDir == Directions.left && movingDirection == Directions.right ||
+        prevMovingDir == Directions.up && movingDirection == Directions.down) &&
+        acceptInput)) {
+
+        movingDirection = prevMovingDir;
+    }
+    if (!gameStarted && movingDirection != Directions.left && movingDirection != Directions.up) {
+        gameStarted = !gameStarted;
+        startGame();
+    }
+}
+
 /** Event Listeners */
 
 document.addEventListener("keydown", function(event) {
 
     if (!(movingDirection == Directions.right && event.key == Directions.left) &&
-        !(movingDirection == Directions.down && event.key == Directions.top) &&
+        !(movingDirection == Directions.down && event.key == Directions.up) &&
         !(movingDirection == Directions.left && event.key == Directions.right) &&
-        !(movingDirection == Directions.top && event.key == Directions.down) &&
+        !(movingDirection == Directions.up && event.key == Directions.down) &&
         Object.values(Directions).includes(event.key) &&
         acceptInput) {
 
@@ -177,7 +206,7 @@ document.addEventListener("keydown", function(event) {
         acceptInput = false;
     }
 
-    if (!gameStarted && event.key != Directions.left && event.key != Directions.top) {
+    if (!gameStarted && event.key != Directions.left && event.key != Directions.up) {
         gameStarted = !gameStarted;
         startGame();
     }
@@ -187,5 +216,18 @@ document.addEventListener("keydown", function(event) {
 window.addEventListener("resize", function() {
     init();
 });
+
+document.addEventListener("touchstart", function(event) {
+    touchStartX = event.changedTouches[0].clientX;
+    touchStartY = event.changedTouches[0].clientY;
+}, false);
+
+document.addEventListener("touchend", function(event) {
+    touchEndX = event.changedTouches[0].clientX;
+    touchEndY = event.changedTouches[0].clientY;
+    setTouchDirection();
+}, false);
+
+
 
 
