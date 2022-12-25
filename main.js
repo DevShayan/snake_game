@@ -116,9 +116,17 @@ function startGame() {
             headPosX <= -25 ||
             headPosY <= -25) {
 
-            clearInterval(gameLoop);
             gameOver();
         }
+
+        for (let x=1; x<snakes.length; x++) {
+            if (headPosX == parseFloat(snakes[x].style.left) &&
+                headPosY == parseFloat(snakes[x].style.top)) {
+
+                gameOver();
+            }
+        }
+
         if (headPosX == foodPosX && headPosY == foodPosY) {
             score++;
             scoreDisplay.innerText = "Score: "+score;
